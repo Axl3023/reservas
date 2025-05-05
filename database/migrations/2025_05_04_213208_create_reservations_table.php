@@ -26,8 +26,8 @@ return new class extends Migration
             $table->timestamps();
 
             // Foreign Keys
-            $table->foreign('table_id')->references('id')->on('tables')->nullOnDelete();
-            $table->foreign('employee_id')->references('id')->on('employees')->nullOnDelete();
+            $table->foreign('table_id')->references('id')->on('tables')->restrictOnDelete();
+            $table->foreign('employee_id')->references('id')->on('employees')->restrictOnDelete();
         });
     }
 
