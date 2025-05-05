@@ -57,11 +57,12 @@ export function EmpleadosTable() {
 
     useEffect(() => {
         async function fetchData() {
-            const res = await fetch('');
+            const res = await fetch('/api/empleado', {
+                credentials: 'include',
+            });
             const json = await res.json();
-            setData(json.slice(0, 5)); // 5 primeros elementos
+            setData(json.employee);
         }
-
         fetchData();
     }, []);
 

@@ -16,10 +16,15 @@ type ReservaItem = {
     reservation_date: string; // usar string porque viene como ISO string de JSON
     reservation_time: string;
     guest_count: number;
-    table_id: number;
+    table: {
+        table_number: string;
+    }
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed'; // debe coincidir con la migración
     notes: string | null;
-    employee_id: number;
+    employee: {
+        first_name: string;
+        last_name: string | null;
+    }
 };
 
 // Columnas de la tabla
@@ -63,7 +68,7 @@ const columns: ColumnDef<ReservaItem>[] = [
     },
     {
         header: 'Mesa',
-        accessorKey: 'table_id',
+        accessorKey: 'table.table_number',
     },
     {
         header: 'Estado',
@@ -73,6 +78,8 @@ const columns: ColumnDef<ReservaItem>[] = [
                 className={cn(
                     row.getValue('status') === 'cancelled' && 'bg-destructive text-white',
                     row.getValue('status') === 'completed' && 'bg-green-600 text-white',
+                    row.getValue('status') === 'pending' && 'bg-yellow-600 text-white',
+                    row.getValue('status') === 'confirmed' && 'bg-blue-600 text-white',
                 )}
             >
                 {row.getValue('status')}
@@ -85,7 +92,9 @@ const columns: ColumnDef<ReservaItem>[] = [
     },
     {
         header: 'Empleado',
-        accessorKey: 'employee_id',
+        accessorFn: (
+            row, // Nombre completo
+        ) => `${row.employee.first_name} ${row.employee.last_name ?? ''}`,
     },
 ];
 
@@ -95,11 +104,12 @@ export function ReservasTable() {
 
     useEffect(() => {
         async function fetchData() {
-            const res = await fetch('');
+            const res = await fetch('/api/reserva', {
+                credentials: 'include',
+            });
             const json = await res.json();
-            setData(json.slice(0, 5)); // 5 primeros elementos
+            setData(json.reservations);
         }
-
         fetchData();
     }, []);
 

@@ -51,6 +51,7 @@ const columns: ColumnDef<MesaItem>[] = [
                 className={cn(
                     row.getValue('status') === 'occupied' && 'bg-destructive text-white',
                     row.getValue('status') === 'available' && 'bg-green-600 text-white',
+                    row.getValue('status') === 'reserved' && 'bg-yellow-600 text-white',
                 )}
             >
                 {row.getValue('status')}
@@ -65,11 +66,13 @@ export function MesaTable() {
 
     useEffect(() => {
         async function fetchData() {
-            const res = await fetch('');
+            const res = await fetch('/api/mesa', {
+                credentials: 'include',
+            });
+            console.log(res);
             const json = await res.json();
-            setData(json.slice(0, 5)); // 5 primeros elementos
+            setData(json.tables);
         }
-
         fetchData();
     }, []);
 

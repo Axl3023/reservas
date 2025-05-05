@@ -28,7 +28,7 @@ class EmployeeController extends Controller
             'phone' => 'nullable|string|max:20',
             'position' => 'nullable|string|max:100',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Error en la validacion de datos',
@@ -36,9 +36,9 @@ class EmployeeController extends Controller
                 'status' => 400,
             ], 400);
         }
-    
+
         $employee = Employee::create($validator->validated());
-    
+
         return response()->json([
             'message' => 'Empleado creado exitosamente',
             'employee' => $employee,
@@ -49,7 +49,7 @@ class EmployeeController extends Controller
     public function show($id)
     {
         $employee = Employee::find($id);
-    
+
         if (!$employee) {
             $data = [
                 'message' => 'Empleado no encontrado',
@@ -57,19 +57,19 @@ class EmployeeController extends Controller
             ];
             return response()->json($data, 404);
         }
-    
+
         $data = [
             'employee' => $employee,
             'status' => 200,
         ];
-    
+
         return response()->json($data, 200);
     }
 
     public function destroy($id)
     {
         $employee = Employee::find($id);
-    
+
         if (!$employee) {
             $data = [
                 'message' => 'Empleado no encontrado',
@@ -77,14 +77,14 @@ class EmployeeController extends Controller
             ];
             return response()->json($data, 404);
         }
-    
+
         $employee->delete();
-    
+
         $data = [
             'message' => 'Empleado eliminado exitosamente',
             'status' => 200,
         ];
-    
+
         return response()->json($data, 200);
     }
 

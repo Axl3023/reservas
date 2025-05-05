@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\TableController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -23,6 +26,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/empleados', function () {
         return Inertia::render('empleados'); // importante: el nombre en minúsculas por convención
     })->name('empleados');
+
+    Route::get('/api/mesa', [TableController::class, 'index'])
+        ->name('api.mesa');
+
+    Route::get('/api/reserva', [ReservationController::class, 'index'])
+        ->name('api.reserva');
+
+    Route::get('/api/empleado', [EmployeeController::class, 'index'])
+        ->name('api.empleado');
 });
 
 require __DIR__.'/settings.php';
