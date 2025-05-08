@@ -40,4 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/reserva/{id}', [ReservationController::class, 'update']);
     Route::patch('/reserva/{id}', [ReservationController::class, 'updatePartial']);
     Route::delete('/reserva/{id}', [ReservationController::class, 'destroy']);
+
+    //Reservar
+    Route::post('/reservar',[ReservationController::class, 'reservar']);  
+    Route::post('/respuesta', [ReservationController::class, 'respuesta']);
+    Route::get('/respuesta/verdadero', [ReservationController::class, 'respuestaVerdadero']);
+    Route::post('/respuesta/falso', [ReservationController::class, 'respuestaFalso']);
 });

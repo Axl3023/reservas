@@ -27,7 +27,7 @@ return new class extends Migration
 
             // Foreign Keys
             $table->foreign('table_id')->references('id')->on('tables')->restrictOnDelete();
-            $table->foreign('employee_id')->references('id')->on('employees')->restrictOnDelete();
+            $table->unsignedBigInteger('employee_id')->nullable(); // Lo hace opcional
         });
     }
 
