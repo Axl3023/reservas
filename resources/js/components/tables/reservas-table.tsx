@@ -21,10 +21,7 @@ type ReservaItem = {
     }
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed'; // debe coincidir con la migración
     notes: string | null;
-    employee: {
-        first_name: string;
-        last_name: string | null;
-    }
+
 };
 
 // Columnas de la tabla
@@ -49,11 +46,12 @@ const columns: ColumnDef<ReservaItem>[] = [
     {
         header: 'Teléfono',
         accessorKey: 'customer_phone',
+        cell: ({ row }) => {
+            const phone = row.getValue('customer_phone');
+            return <>{phone || '921 971 743'}</>; // Si no hay teléfono, se muestra el número por defecto
+        },
     },
-    {
-        header: 'Email',
-        accessorKey: 'customer_email',
-    },
+
     {
         header: 'Fecha',
         accessorKey: 'reservation_date',
@@ -86,16 +84,11 @@ const columns: ColumnDef<ReservaItem>[] = [
             </Badge>
         ),
     },
-    {
-        header: 'Notas',
-        accessorKey: 'notes',
-    },
-    {
-        header: 'Empleado',
-        accessorFn: (
-            row, // Nombre completo
-        ) => `${row.employee.first_name} ${row.employee.last_name ?? ''}`,
-    },
+    // {
+    //     header: 'Notas',
+    //     accessorKey: 'notes',
+    // },
+
 ];
 
 // Componente principal de la tabla
