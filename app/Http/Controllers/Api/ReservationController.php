@@ -29,7 +29,7 @@ class ReservationController extends Controller
             'reservation_time' => 'required|date_format:H:i',
             'guest_count' => 'required|integer|min:1',
             'table_id' => 'required|exists:tables,id',
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'status' => 'in:pending,confirmed,cancelled,completed',
             'notes' => 'nullable|string',
         ]);
@@ -87,7 +87,7 @@ class ReservationController extends Controller
             'reservation_time' => 'required|date_format:H:i',
             'guest_count' => 'required|integer|min:1',
             'table_id' => 'required|exists:tables,id',
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'status' => 'required|in:pending,confirmed,cancelled,completed',
             'notes' => 'nullable|string',
         ]);
@@ -178,7 +178,7 @@ class ReservationController extends Controller
             'reserva_invitados' => 'required|integer|min:1',
             'mesa' => 'required|exists:tables,id',  // Validar que el ID de mesa exista
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Error en la validación de los datos',
@@ -186,7 +186,7 @@ class ReservationController extends Controller
                 'status' => 400,
             ], 400);
         }
-    
+
         // Crear la reserva sin pasar el employee_id
         $reservation = Reservation::create([
             'customer_name' => $request->nombre,
@@ -197,128 +197,126 @@ class ReservationController extends Controller
             'status' => 'pending', // Estado inicial
             // No se pasa employee_id
         ]);
-    
+
         // Respuesta similar a la de Node.js
         return response()->json([
             'data' => 'RESERVA CREADA EXITOSAMENTE COLEGA'
         ]);
     }
-    
+
     // En ReservationController.php
 
-public function respuesta(Request $request)
-{
-    // Obtener los datos del request
-    $data = $request->validate([
-        'nombre' => 'required|string|max:100',
-        'hora' => 'required|date_format:H:i',
-        'reserva_fecha' => 'required|date',
-        'reserva_invitados' => 'required|integer|min:1',
-    ]);
-
-    $reservasCoinciden = Reservation::where('reservation_date', $data['reserva_fecha'])
-        ->where('reservation_time', $data['hora'])
-        ->get();
-
-    // Filtrar las mesas ocupadas en ese horario
-    $mesasOcupadas = $reservasCoinciden->pluck('table_id')->toArray();
-
-    // Buscar primera mesa disponible
-    $mesaDisponible = Table::whereNotIn('id', $mesasOcupadas)
-        ->where('capacity', '>=', $data['reserva_invitados'])
-        ->first();
-
-    if ($mesaDisponible) {
-        return response()->json([
-            'asignado' => true,
-            'mesa' => $mesaDisponible->id
+    public function respuesta(Request $request)
+    {
+        // Obtener los datos del request
+        $data = $request->validate([
+            'nombre' => 'required|string|max:100',
+            'hora' => 'required|date_format:H:i',
+            'reserva_fecha' => 'required|date',
+            'reserva_invitados' => 'required|integer|min:1',
         ]);
-    } else {
-        return response()->json([
-            'asignado' => false
-        ]);
-    }
-}
 
-public function respuestaVerdadero()
-{
-    return response('El cliente debe de confirmar la respuesta');
-}
-// En ReservationController.php
+        $reservasCoinciden = Reservation::where('reservation_date', $data['reserva_fecha'])
+            ->where('reservation_time', $data['hora'])
+            ->get();
 
-public function respuestaFalso(Request $request)
-{
-    $data = $request->validate([
-        'hora' => 'required|date_format:H:i',
-        'reserva_fecha' => 'required|date',
-        'reserva_invitados' => 'required|integer|min:1',
-    ]);
+        // Filtrar las mesas ocupadas en ese horario
+        $mesasOcupadas = $reservasCoinciden->pluck('table_id')->toArray();
 
-    $horaBase = (int)explode(":", $data['hora'])[0];
+        // Buscar primera mesa disponible
+        $mesaDisponible = Table::whereNotIn('id', $mesasOcupadas)
+            ->where('capacity', '>=', $data['reserva_invitados'])
+            ->first();
 
-    $horaNegativa = null;
-    $horaPositiva = null;
-
-    // Buscar hacia atrás
-    for ($i = 1; $i <= 23; $i++) {
-        $nuevaHora = $horaBase - $i;
-        if ($nuevaHora < 0) break;
-        $disponible = $this->verificarDisponibilidad($nuevaHora, $data['reserva_fecha'], $data['reserva_invitados']);
-        if ($disponible) {
-            $horaNegativa = $disponible;
-            break;
+        if ($mesaDisponible) {
+            return response()->json([
+                'asignado' => true,
+                'mesa' => $mesaDisponible->id
+            ]);
+        } else {
+            return response()->json([
+                'asignado' => false
+            ]);
         }
     }
 
-    // Buscar hacia adelante
-    for ($i = 1; $i <= 23; $i++) {
-        $nuevaHora = $horaBase + $i;
-        if ($nuevaHora > 23) break;
-        $disponible = $this->verificarDisponibilidad($nuevaHora, $data['reserva_fecha'], $data['reserva_invitados']);
-        if ($disponible) {
-            $horaPositiva = $disponible;
-            break;
+    public function respuestaVerdadero()
+    {
+        return response('El cliente debe de confirmar la respuesta');
+    }
+    // En ReservationController.php
+
+    public function respuestaFalso(Request $request)
+    {
+        $data = $request->validate([
+            'hora' => 'required|date_format:H:i',
+            'reserva_fecha' => 'required|date',
+            'reserva_invitados' => 'required|integer|min:1',
+        ]);
+
+        $horaBase = (int)explode(":", $data['hora'])[0];
+
+        $horaNegativa = null;
+        $horaPositiva = null;
+
+        // Buscar hacia atrás
+        for ($i = 1; $i <= 23; $i++) {
+            $nuevaHora = $horaBase - $i;
+            if ($nuevaHora < 0) break;
+            $disponible = $this->verificarDisponibilidad($nuevaHora, $data['reserva_fecha'], $data['reserva_invitados']);
+            if ($disponible) {
+                $horaNegativa = $disponible;
+                break;
+            }
         }
+
+        // Buscar hacia adelante
+        for ($i = 1; $i <= 23; $i++) {
+            $nuevaHora = $horaBase + $i;
+            if ($nuevaHora > 23) break;
+            $disponible = $this->verificarDisponibilidad($nuevaHora, $data['reserva_fecha'], $data['reserva_invitados']);
+            if ($disponible) {
+                $horaPositiva = $disponible;
+                break;
+            }
+        }
+
+        $sugerencias = [];
+
+        if ($horaNegativa) {
+            $sugerencias[] = [
+                'hora' => $horaNegativa,
+                'reserva_fecha' => $data['reserva_fecha']
+            ];
+        }
+
+        if ($horaPositiva) {
+            $sugerencias[] = [
+                'hora' => $horaPositiva,
+                'reserva_fecha' => $data['reserva_fecha']
+            ];
+        }
+
+        return response()->json(['sugerencias' => $sugerencias]);
     }
 
-    $sugerencias = [];
+    private function verificarDisponibilidad($hora, $fecha, $invitados)
+    {
+        $horaStr = str_pad($hora, 2, '0', STR_PAD_LEFT) . ":00";
 
-    if ($horaNegativa) {
-        $sugerencias[] = [
-            'hora' => $horaNegativa,
-            'reserva_fecha' => $data['reserva_fecha']
-        ];
+        // Filtrar reservas por fecha y hora exactas
+        $reservasEnHora = Reservation::where('reservation_date', $fecha)
+            ->where('reservation_time', $horaStr)
+            ->get();
+
+        // Filtrar las mesas ocupadas en ese horario
+        $mesasOcupadas = $reservasEnHora->pluck('table_id')->toArray();
+
+        // Buscar mesas disponibles
+        $mesasDisponibles = Table::whereNotIn('id', $mesasOcupadas)
+            ->where('capacity', '>=', $invitados)
+            ->get();
+
+        return $mesasDisponibles->isEmpty() ? null : $horaStr;
     }
-
-    if ($horaPositiva) {
-        $sugerencias[] = [
-            'hora' => $horaPositiva,
-            'reserva_fecha' => $data['reserva_fecha']
-        ];
-    }
-
-    return response()->json(['sugerencias' => $sugerencias]);
-}
-
-private function verificarDisponibilidad($hora, $fecha, $invitados)
-{
-    $horaStr = str_pad($hora, 2, '0', STR_PAD_LEFT) . ":00";
-
-    // Filtrar reservas por fecha y hora exactas
-    $reservasEnHora = Reservation::where('reservation_date', $fecha)
-        ->where('reservation_time', $horaStr)
-        ->get();
-
-    // Filtrar las mesas ocupadas en ese horario
-    $mesasOcupadas = $reservasEnHora->pluck('table_id')->toArray();
-
-    // Buscar mesas disponibles
-    $mesasDisponibles = Table::whereNotIn('id', $mesasOcupadas)
-        ->where('capacity', '>=', $invitados)
-        ->get();
-
-    return $mesasDisponibles->isEmpty() ? null : $horaStr;
-}
-
-
 }
