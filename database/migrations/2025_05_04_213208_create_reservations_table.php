@@ -22,12 +22,13 @@ return new class extends Migration
             $table->unsignedBigInteger('table_id');
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
             $table->text('notes')->nullable();
-            $table->unsignedBigInteger('employee_id');
+            $table->unsignedBigInteger('employee_id')->nullable(); // Lo hace opcional
             $table->timestamps();
 
             // Foreign Keys
             $table->foreign('table_id')->references('id')->on('tables')->restrictOnDelete();
-            $table->unsignedBigInteger('employee_id')->nullable(); // Lo hace opcional
+            $table->foreign('employee_id')->references('id')->on('employees')->nullOnDelete();
+
         });
     }
 
